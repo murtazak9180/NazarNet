@@ -34,7 +34,6 @@ def construct_csvs(train_imgs, test_imgs, val_imgs, label):
           
             
 
-
 for obj in objects:
     object_path = dataset_path / obj
     images = os.listdir(object_path)
