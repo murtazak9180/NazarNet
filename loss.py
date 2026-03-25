@@ -13,5 +13,6 @@ def contrastive_loss(emb1, emb2, labels):
 
     losses = (labels * dist_sq) + ((1 - labels) * torch.clamp(margin - dist, min=0)**2)
     total_loss = torch.mean(losses)
+    return total_loss
 
 

@@ -3,6 +3,18 @@ from PIL import Image
 import os
 import pandas as pd
 import random
+from torchvision import transforms
+
+
+
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std =[0.229, 0.224, 0.225]
+    )
+])
 
 class ContrastiveDataset(Dataset):
 
@@ -23,7 +35,7 @@ class ContrastiveDataset(Dataset):
         img1_label = self.labels[idx]
 
         if random.random() > 0.5:
-            candidates = self.df[self.df['Label'] == img1_label]   #sample randomly from the same class. 
+            candidates = self.df[(self.df['Label'] == img1_label) & (self.df['Path'] != img1_path)]   #sample randomly from the same class. 
             img2_path = candidates.sample(n=1)['Path'].values[0]
             label = 1
         else:
@@ -31,8 +43,8 @@ class ContrastiveDataset(Dataset):
             img2_path = candidates.sample(n=1)['Path'].values[0]
             label = 0
 
-        img1 = Image.open(img1_path)
-        img2 = Image.open(img2_path)
+        img1 = Image.open(img1_path).convert("RGB")
+        img2 = Image.open(img2_path).convert("RGB")
 
         if self.transform:
             img1 = self.transform(img1)
@@ -63,9 +75,9 @@ class TripletDataset(Dataset):
         negative_img_candidates = self.df[self.df['Label'] != anchor_img_lbl]
         negative_image_pth = negative_img_candidates.sample(n=1)['Path'].values[0]
 
-        anch_img = Image.open(anchor_img_pth)
-        pos_img = Image.open(positive_image_pth)
-        neg_img = Image.open(negative_image_pth)
+        anch_img = Image.open(anchor_img_pth).convert("RGB")
+        pos_img = Image.open(positive_image_pth).convert("RGB")
+        neg_img = Image.open(negative_image_pth).convert("RGB")
 
         if self.transform:
             anch_img = self.transform(anch_img)
