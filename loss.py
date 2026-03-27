@@ -20,8 +20,10 @@ def triplet_loss(anchor, positive, negative, margin=0.2):
     
     # Calculate Euclidean distances D(a,p) and D(a,n)
     # D = sqrt(sum((x1 - x2)^2))
-    dist_ap = torch.sqrt(torch.sum((anchor - positive)**2, dim=1))
-    dist_an = torch.sqrt(torch.sum((anchor - negative)**2, dim=1))
+    eps = 1e-8
+
+    dist_ap = torch.sqrt(torch.sum((anchor - positive)**2, dim=1) + eps)
+    dist_an = torch.sqrt(torch.sum((anchor - negative)**2, dim=1) + eps)
     
     losses = torch.clamp(dist_ap - dist_an + margin, min=0.0)
     return torch.mean(losses)

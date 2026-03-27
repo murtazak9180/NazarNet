@@ -1,7 +1,7 @@
 import torch
 from loss import contrastive_loss, triplet_loss
 from model import ResnetEmbedding
-from dataset import ContrastiveDataset, TripletDataset, transform, SimpleDataset
+from dataset import ContrastiveDataset, TripletDataset, transform, SimpleDataset, BalancedBatchSampler
 import yaml 
 from pathlib import Path
 from torch.utils.data import DataLoader
@@ -83,9 +83,17 @@ def main():
         
 
     #make dataloaders 
-    train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
-    val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
-    test = DataLoader(dataset_test, batch_size=batch_size, shuffle=False)
+    #we use custom smpler for hard mining. 
+    if config["dataset"] != "Hard Mining":
+        train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
+        val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
+        test = DataLoader(dataset_test, batch_size=batch_size, shuffle=False)
+    else:
+        train_sampler = BalancedBatchSampler(dataset_train, n_classes=8, n_samples=4)
+        train = DataLoader(dataset_train, batch_sampler=train_sampler)
+        val_sampler = BalancedBatchSampler(dataset_val, n_classes=8, n_samples=4)
+        val = DataLoader(dataset_val, batch_sampler=val_sampler)
+        test = DataLoader(dataset_test, batch_size=batch_size, shuffle=False)
 
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -234,9 +242,10 @@ def main():
             with torch.no_grad():
                 for img, label in val:
                     img = img.to(device)
+                    label_tensor = torch.tensor(label).to(device)
                 
                     img_emb = model(img)
-                    anch_emb, pos_emb, neg_emb = get_hard_triplets(img_emb, label) 
+                    anch_emb, pos_emb, neg_emb = get_hard_triplets(img_emb, label_tensor) 
                     loss = triplet_loss(anch_emb, pos_emb, neg_emb)
 
                     val_loss += loss.item()

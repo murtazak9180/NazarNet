@@ -4,6 +4,10 @@ import os
 import pandas as pd
 import random
 from torchvision import transforms
+from torch.utils.data import Sampler
+import numpy as np
+
+
 
 
 
@@ -109,3 +113,34 @@ class SimpleDataset(Dataset):  #for hard mining
             img = self.transform(img)
             
         return img, label_id 
+    
+
+
+class BalancedBatchSampler(Sampler):
+    def __init__(self, dataset, n_classes, n_samples):
+        self.labels = np.array(dataset.labels if hasattr(dataset, 'labels') else [dataset[i][1] for i in range(len(dataset))])
+        self.classes = np.unique(self.labels)
+        self.n_classes = n_classes 
+        self.n_samples = n_samples 
+        self.batch_size = n_classes * n_samples
+        
+        # Create a dictionary of indices for each class
+        self.class_indices = {c: np.where(self.labels == c)[0] for c in self.classes}
+
+    def __iter__(self):
+        n_batches = len(self.labels) // self.batch_size
+        for _ in range(n_batches):
+            # Randomly select 8 classes
+            selected_classes = np.random.choice(self.classes, self.n_classes, replace=False)
+            batch_indices = []
+            for c in selected_classes:
+                # Randomly select 4 images from each of those classes
+                indices = self.class_indices[c]
+                # Use replace=True if a class has fewer than n_samples images
+                replace = len(indices) < self.n_samples
+                batch_indices.extend(np.random.choice(indices, self.n_samples, replace=replace))
+            
+            yield batch_indices
+
+    def __len__(self):
+        return len(self.labels) // self.batch_size
