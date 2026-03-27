@@ -88,3 +88,24 @@ class TripletDataset(Dataset):
 
 
 
+class SimpleDataset(Dataset):  #for hard mining
+    def __init__(self, csv_path, transform=None):
+        self.df = pd.read_csv(csv_path)
+        self.transform = transform
+        
+        self.class_to_idx = {name: i for i, name in enumerate(sorted(self.df['Label'].unique()))}
+        
+    def __len__(self):
+        return len(self.df)
+
+    def __getitem__(self, idx):
+        row = self.df.iloc[idx]
+        img = Image.open(row['Path']).convert("RGB")
+        
+        # Convert the string label to its integer ID
+        label_id = self.class_to_idx[row['Label']]
+        
+        if self.transform:
+            img = self.transform(img)
+            
+        return img, label_id 
