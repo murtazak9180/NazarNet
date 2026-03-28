@@ -1,6 +1,6 @@
 dataset: "Conrastive"  #Contrastive / Triplet / 
 batch_size: 32         
 lr: 0.001
-epochs: 10
+epochs: 15
 embedding_dim: 128 #the embedding dimension 
 check_point_path = 
