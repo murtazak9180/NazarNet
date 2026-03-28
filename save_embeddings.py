@@ -14,8 +14,8 @@ csv_dir = base_dir / "dataset_split"
 
 models_to_process = [
     {"name": "contrastive", "weight_file": "contrastive.pth"},
-    {"name": "triplet", "weight_file": "triplet.pth"}, # Corrected extension from .csv to .pth
-    {"name": "hardmining", "weight_file": "hardmining.pth"}
+    {"name": "triplet", "weight_file": "triplet.pth"}, # Corrected extension from  .pth
+    {"name": "hardmining", "weight_file": "hardmine.pth"}
 ]
 
 splits = ["train", "val", "test"]
